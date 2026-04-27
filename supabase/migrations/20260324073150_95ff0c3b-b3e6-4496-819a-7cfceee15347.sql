@@ -1,0 +1,1 @@
+ALTER TYPE public.tender_status ADD VALUE IF NOT EXISTS 'cancelled';

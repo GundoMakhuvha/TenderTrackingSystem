@@ -1,0 +1,1 @@
+ALTER TABLE public.tenders ADD COLUMN submission_type text NULL;

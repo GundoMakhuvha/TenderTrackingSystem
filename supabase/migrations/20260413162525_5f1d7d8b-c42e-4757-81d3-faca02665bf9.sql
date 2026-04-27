@@ -1,0 +1,2 @@
+ALTER TABLE public.tender_attachments DROP CONSTRAINT IF EXISTS tender_attachments_requirement_type_check;
+ALTER TABLE public.tender_attachments ADD CONSTRAINT tender_attachments_requirement_type_check CHECK (requirement_type IN ('quote', 'reference_letters', 'accreditation', 'cvs', 'jv', 'project_plans', 'technical_response', 'pricing', 'tender_document'));
