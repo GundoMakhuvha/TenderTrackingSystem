@@ -25,7 +25,7 @@ export function TeamMembersSection({ tenderId, canManage }: TeamMembersSectionPr
   const removeMember = useRemoveTeamMember();
   const [selectedUserId, setSelectedUserId] = useState<string>('');
 
-  const MAX_TEAM_MEMBERS = 5;
+  const MAX_TEAM_MEMBERS = 10;
 
   const existingUserIds = teamMembers.map(m => m.user_id);
   const availableProfiles = profiles.filter(p => !existingUserIds.includes(p.id));
