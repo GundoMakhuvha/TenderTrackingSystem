@@ -1,73 +1,113 @@
-# Welcome to your Lovable project
+# 📋 Tender Tracking System
 
-## Project info
+A modern web application for managing and tracking tender submissions end-to-end — from creation and document generation to status tracking and automated notifications.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+Built for **Tipp Focus Holdings** to streamline how tenders are logged, monitored, and reported on.
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## ✨ Features
 
-**Use Lovable**
+- **Tender Management** — Create, view, edit, and list tenders with a clean, structured workflow
+- **PDF Reports** — Generate polished, exportable tender reports directly from the app
+- **Authentication** — Secure user login and session handling
+- **Automated Notifications** — Email alerts triggered via Supabase Edge Functions (e.g. status updates, new tenders)
+- **Real-time Data** — Powered by Supabase for live data sync and storage
+- **Responsive UI** — Built with a component-driven design system for a consistent experience across devices
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+---
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🛠️ Tech Stack
 
-**Use your preferred IDE**
+| Layer | Technology |
+|---|---|
+| Frontend | React + TypeScript |
+| Styling | Tailwind CSS |
+| Backend / Database | Supabase (Postgres, Auth, Edge Functions) |
+| Charts & Reporting | Custom chart components + PDF generation |
+| Hosting | Vercel |
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🚀 Getting Started
 
-Follow these steps:
+### Prerequisites
+- Node.js (LTS recommended)
+- npm
+- A Supabase project (URL + anon key)
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Installation
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+```bash
+git clone https://github.com/GundoMakhuvha/TenderTrackingSystem.git
+cd TenderTrackingSystem
+npm install
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+### Environment Setup
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+Create a `.env` file in the project root with your Supabase credentials:
+
+```env
+VITE_SUPABASE_URL=your-supabase-project-url
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
+
+### Run Locally
+
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The app will be available at `http://localhost:5173` (or the port shown in your terminal).
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Build for Production
 
-**Use GitHub Codespaces**
+```bash
+npm run build
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+---
 
-## What technologies are used for this project?
+## 🗂️ Project Structure
 
-This project is built with:
+```
+├── src/
+│   ├── components/
+│   │   ├── layout/         # App shell & layout components
+│   │   ├── tender/         # Tender-specific components (e.g. PDF report)
+│   │   └── ui/             # Shared UI components (charts, etc.)
+│   ├── pages/               # Route-level pages (Auth, TenderList, TenderDetail, TenderForm)
+│   └── integrations/
+│       └── supabase/        # Supabase client & generated types
+├── supabase/
+│   ├── functions/            # Edge Functions (e.g. send-notification-email)
+│   └── migrations/           # Database schema migrations
+└── index.html
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+---
 
-## How can I deploy this project?
+## 🗄️ Database Migrations
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+Migrations live in `supabase/migrations/` and are applied via the Supabase CLI:
 
-## Can I connect a custom domain to my Lovable project?
+```bash
+supabase db push
+```
 
-Yes, you can!
+---
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 📧 Notifications
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+The `send-notification-email` Edge Function handles outbound email notifications. Make sure any required secrets (SMTP/email provider keys, etc.) are configured in your Supabase project's function environment variables — **not** hardcoded in the function source.
+
+---
+
+## 📄 License
+
+Internal project — © Tipp Focus Holdings. All rights reserved.
+
+---
+
+Built with 🛠️ by [Gundo Makhuvha](https://github.com/GundoMakhuvha)
