@@ -1,0 +1,1 @@
+revoke all on function public.send_notification_email() from public, anon, authenticated;

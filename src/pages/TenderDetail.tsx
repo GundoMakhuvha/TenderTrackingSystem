@@ -398,6 +398,12 @@ export default function TenderDetail() {
                   <SelectItem value="MimeCast">MimeCast</SelectItem>
                   <SelectItem value="Backup & Disaster Recovery">Backup & Disaster Recovery</SelectItem>
                   <SelectItem value="Oracle(ERP/Database)">Oracle(ERP/Database)</SelectItem>
+                  <SelectItem value="Digitization">Digitization</SelectItem>
+                  <SelectItem value="Records Management">Records Management</SelectItem>
+                  <SelectItem value="MS Dynamics">MS Dynamics</SelectItem>
+                  <SelectItem value="Recruitment">Recruitment</SelectItem>
+                  <SelectItem value="BPM">BPM</SelectItem>
+                  <SelectItem value="Enterprise Architecture">Enterprise Architecture</SelectItem>
                 </SelectContent>
               </Select>
             </div>

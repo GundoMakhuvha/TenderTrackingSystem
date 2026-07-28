@@ -351,6 +351,10 @@ export type Database = {
         Returns: boolean
       }
       is_admin_or_bids_team: { Args: { _user_id: string }; Returns: boolean }
+      is_tender_team_member: {
+        Args: { _tender_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "bids_team" | "assigned_user"

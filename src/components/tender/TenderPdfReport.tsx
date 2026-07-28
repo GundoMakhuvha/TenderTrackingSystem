@@ -25,7 +25,7 @@ export function TenderPdfReport({ tender }: TenderPdfReportProps) {
         img.onload = resolve;
         img.onerror = reject;
       });
-      doc.addImage(img, 'PNG', margin, y, 40, 20);
+      doc.addImage(img, 'PNG', margin, y, 40, 30);
       y += 30;
     } catch {
       // Continue without logo if it fails to load
@@ -84,7 +84,7 @@ export function TenderPdfReport({ tender }: TenderPdfReportProps) {
     addField('Status', tender.status.charAt(0).toUpperCase() + tender.status.slice(1));
     addField('Submission Deadline', format(new Date(tender.submission_deadline), 'PPP p'));
     addField('Estimated Value', tender.estimated_value 
-      ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(tender.estimated_value)
+      ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'ZAR' }).format(tender.estimated_value)
       : null);
     y += 5;
 
@@ -100,7 +100,7 @@ export function TenderPdfReport({ tender }: TenderPdfReportProps) {
     addField('Briefing Attended', tender.briefing_attended ? 'Yes' : 'No');
     addField('Duration (Months)', tender.duration_months?.toString());
     addField('Budget', tender.budget 
-      ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(tender.budget)
+      ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'ZAR' }).format(tender.budget)
       : null);
     addField('Rating', tender.rating);
     y += 5;

@@ -191,7 +191,7 @@ export default function TenderForm() {
                 <Input
                   id="estimated_value"
                   type="number"
-                  placeholder="Example: 50 000"
+                  placeholder="Example: 50000"
                   value={formData.estimated_value ?? ''}
                   onChange={(e) => updateField('estimated_value', e.target.value ? Number(e.target.value) : null)}
                 />
@@ -204,7 +204,7 @@ export default function TenderForm() {
                 <Input
                   id="budget"
                   type="number"
-                  placeholder="Example: 100 000"
+                  placeholder="Example: 100000"
                   value={formData.budget ?? ''}
                   onChange={(e) => updateField('budget', e.target.value ? Number(e.target.value) : null)}
                 />
@@ -256,6 +256,12 @@ export default function TenderForm() {
                     <SelectItem value="MimeCast">MimeCast</SelectItem>
                     <SelectItem value="Backup & Disaster Recovery">Backup & Disaster Recovery</SelectItem>
                     <SelectItem value="Oracle(ERP/Database)">Oracle(ERP/Database)</SelectItem>
+                    <SelectItem value="Digitization">Digitization</SelectItem>
+                    <SelectItem value="Records Management">Records Management</SelectItem>
+                    <SelectItem value="MS Dynamics">MS Dynamics</SelectItem>
+                    <SelectItem value="Recruitment">Recruitment</SelectItem>
+                    <SelectItem value="BPM">BPM</SelectItem>
+                    <SelectItem value="Enterprise Architecture">Enterprise Architecture</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -283,7 +289,7 @@ export default function TenderForm() {
                 <Label htmlFor="rating">Rating</Label>
                 <Input
                   id="rating"
-                  placeholder="Example: A, B, C or 1-5"
+                  placeholder="e.g., A, B, C or 1-5"
                   value={formData.rating ?? ''}
                   onChange={(e) => updateField('rating', e.target.value || null)}
                 />
