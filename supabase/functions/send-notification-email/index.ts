@@ -5,7 +5,7 @@ const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const FROM_EMAIL = "noreply@capvtal.com";
 const FROM_NAME = "Tipp Focus Tenders";
 const HOOK_SECRET = Deno.env.get("NOTIFY_HOOK_SECRET");
-const APP_URL = Deno.env.get("APP_URL") ?? "https://tender-tracking-system.vercel.app";
+const APP_URL = "https://tender-tracking-system.vercel.app";
 
 const SUBJECTS: Record<string, string> = {
   new_tender: "New tender assigned to you",
@@ -28,7 +28,7 @@ function buildHtml(name: string, message: string, link: string | null) {
   return `<!doctype html>
 <html><body style="margin:0;padding:0;background:#ffffff;font-family:Arial,Helvetica,sans-serif;color:#1a1a1a;">
   <div style="max-width:560px;margin:0 auto;padding:32px 24px;">
-    <p style="font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#6b7280;margin:0 0 16px;">TIPP Focus &middot; Tender Tracking</p>
+    <p style="font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#6b7280;margin:0 0 16px;">Tipp Focus &middot; Tender Tracker System</p>
     <h1 style="font-size:20px;margin:0 0 16px;">Hi ${escapeHtml(name)},</h1>
     <p style="font-size:16px;line-height:1.6;margin:0 0 24px;">${escapeHtml(message)}</p>
     ${
@@ -37,7 +37,7 @@ function buildHtml(name: string, message: string, link: string | null) {
         : ""
     }
     <hr style="border:none;border-top:1px solid #e5e7eb;margin:32px 0 16px;" />
-    <p style="font-size:12px;color:#6b7280;margin:0;">You are receiving this because you are involved in this tender in the TIPP Focus Tender Tracking System.</p>
+    <p style="font-size:12px;color:#6b7280;margin:0;">You are receiving this because you are involved in this tender in the Tipp Focus Tender Tracking System.</p>
   </div>
 </body></html>`;
 }
