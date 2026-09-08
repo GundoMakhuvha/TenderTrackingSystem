@@ -1,11 +1,11 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
-const SENDGRID_API_KEY = Deno.env.get("SENDGRID_API_KEY");
-const FROM_EMAIL = Deno.env.get("SENDGRID_FROM_EMAIL") ?? "noreply@tippfocus.co.za";
-const FROM_NAME = Deno.env.get("SENDGRID_FROM_NAME") ?? "TIPP Focus Tenders";
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const FROM_EMAIL = "noreply@capvtal.com";
+const FROM_NAME = "Tipp Focus Tenders";
 const HOOK_SECRET = Deno.env.get("NOTIFY_HOOK_SECRET");
-const APP_URL = Deno.env.get("APP_URL") ?? "https://id-preview--049fe298-cdd9-4368-85ce-b9402d2ce94e.lovable.app";
+const APP_URL = Deno.env.get("APP_URL") ?? "https://tender-tracking-system.vercel.app";
 
 const SUBJECTS: Record<string, string> = {
   new_tender: "New tender assigned to you",
@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
     });
 
   try {
-    if (!SENDGRID_API_KEY) return json({ error: "SENDGRID_API_KEY is not configured" }, 500);
+    if (!RESEND_API_KEY) return json({ error: "RESEND_API_KEY is not configured" }, 500);
 
     if (!HOOK_SECRET || req.headers.get("x-hook-secret") !== HOOK_SECRET) {
       return json({ error: "Unauthorized" }, 401);
@@ -91,30 +91,25 @@ Deno.serve(async (req) => {
     const link = notification.tender_id ? `${APP_URL}/tenders/${notification.tender_id}` : null;
     const subject = SUBJECTS[notification.type] ?? "Tender notification";
 
-    const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
+    const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${SENDGRID_API_KEY}`,
+        Authorization: `Bearer ${RESEND_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        personalizations: [{ to: [{ email: profile.email }] }],
-        from: { email: FROM_EMAIL, name: FROM_NAME },
+        from: `${FROM_NAME} <${FROM_EMAIL}>`,
+        to: [profile.email],
         subject,
-        content: [
-          { type: "text/plain", value: `${notification.message}${link ? `\n\n${link}` : ""}` },
-          {
-            type: "text/html",
-            value: buildHtml(profile.full_name || profile.email, notification.message, link),
-          },
-        ],
+        text: `${notification.message}${link ? `\n\n${link}` : ""}`,
+        html: buildHtml(profile.full_name || profile.email, notification.message, link),
       }),
     });
 
     if (!res.ok) {
       const details = await res.text();
-      console.error(`SendGrid failed [${res.status}]: ${details}`);
-      return json({ error: "SendGrid request failed", status: res.status, details }, res.status);
+      console.error(`Resend failed [${res.status}]: ${details}`);
+      return json({ error: "Resend request failed", status: res.status, details }, res.status);
     }
 
     console.log(`Email sent to ${profile.email} for notification ${notification.id}`);

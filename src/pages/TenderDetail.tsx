@@ -623,9 +623,15 @@ export default function TenderDetail() {
             <div className="space-y-2">
               <Label>Reason for Non-Submission</Label>
               <Textarea
+                key={`${tender.id}-${tender.updated_at ?? ''}`}
                 placeholder="Explain why this tender was not submitted..."
-                value={tender.non_submission_reason ?? ''}
-                onChange={(e) => handleTenderFieldChange('non_submission_reason', e.target.value || null)}
+                defaultValue={tender.non_submission_reason ?? ''}
+                onBlur={(e) => {
+                  const value = e.target.value || null;
+                  if (value !== (tender.non_submission_reason ?? null)) {
+                    handleTenderFieldChange('non_submission_reason', value);
+                  }
+                }}
                 rows={3}
               />
             </div>

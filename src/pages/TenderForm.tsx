@@ -134,7 +134,7 @@ export default function TenderForm() {
                 <Label htmlFor="tender_reference">Tender Reference *</Label>
                 <Input
                   id="tender_reference"
-                  placeholder="Example: Tipp-123"
+                  placeholder="Example: TIPP-2026-001"
                   value={formData.tender_reference}
                   onChange={(e) => updateField('tender_reference', e.target.value)}
                   required
@@ -214,7 +214,7 @@ export default function TenderForm() {
                 <Input
                   id="duration_months"
                   type="number"
-                  placeholder="Example: 36"
+                  placeholder="Example: 12"
                   value={formData.duration_months ?? ''}
                   onChange={(e) => updateField('duration_months', e.target.value ? Number(e.target.value) : null)}
                 />
@@ -289,7 +289,7 @@ export default function TenderForm() {
                 <Label htmlFor="rating">Rating</Label>
                 <Input
                   id="rating"
-                  placeholder="e.g., A, B, C or 1-5"
+                  placeholder="Example: A, B, C or 1-5"
                   value={formData.rating ?? ''}
                   onChange={(e) => updateField('rating', e.target.value || null)}
                 />

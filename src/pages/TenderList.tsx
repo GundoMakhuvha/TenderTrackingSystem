@@ -165,7 +165,12 @@ export default function TenderList() {
         </div>
         {canManageTenders && (
           <div className="flex gap-2">
-            
+            <Button variant="outline" asChild>
+              <Link to="/tenders/upload">
+                <Upload className="mr-2 h-4 w-4" />
+                Bulk Upload
+              </Link>
+            </Button>
             <Button asChild>
               <Link to="/tenders/new">
                 <Plus className="mr-2 h-4 w-4" />
