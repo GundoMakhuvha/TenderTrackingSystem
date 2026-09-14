@@ -88,6 +88,10 @@ export default function TenderList() {
       filteredTenders = filteredTenders.filter(t => 
         t.status !== 'submitted' && !areAllDocumentsCompiled(t.tender_requirements)
       );
+    } else if (statusFilter === 'won') {
+      filteredTenders = filteredTenders.filter(t => t.submitted && t.successful === true);
+    } else if (statusFilter === 'lost') {
+      filteredTenders = filteredTenders.filter(t => t.submitted && t.successful === false);
     } else {
       filteredTenders = filteredTenders.filter(t => t.status === statusFilter);
     }
@@ -119,6 +123,8 @@ export default function TenderList() {
     submitted: 'bg-muted text-muted-foreground',
     cancelled: 'bg-destructive/10 text-destructive border-destructive/20',
     rejected: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
+    won: 'bg-success/10 text-success border-success/20',
+    lost: 'bg-destructive/10 text-destructive border-destructive/20',
   };
 
   const handleApprove = async (tenderId: string) => {
@@ -224,6 +230,8 @@ export default function TenderList() {
                 <SelectItem value="rejected">Rejected</SelectItem>
                 <SelectItem value="overdue">Overdue</SelectItem>
                 <SelectItem value="missing_docs">Missing Documents</SelectItem>
+                <SelectItem value="won">Won</SelectItem>
+                <SelectItem value="lost">Lost</SelectItem>
               </SelectContent>
             </Select>
           )}
@@ -339,9 +347,16 @@ export default function TenderList() {
                       {tender.assigned_lead_name}
                     </TableCell>
                     <TableCell>
-                      <Badge className={statusColors[tender.status] || ''} variant="outline">
-                        {tenderStatusLabels[tender.status] || tender.status}
-                      </Badge>
+                      {(() => {
+                        const eff = tender.status === 'submitted' && tender.successful !== null
+                          ? (tender.successful ? 'won' : 'lost')
+                          : tender.status;
+                        return (
+                          <Badge className={statusColors[eff] || ''} variant="outline">
+                            {eff === 'won' ? 'Won' : eff === 'lost' ? 'Lost' : (tenderStatusLabels[tender.status] || tender.status)}
+                          </Badge>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
                       {tender.department || '—'}
