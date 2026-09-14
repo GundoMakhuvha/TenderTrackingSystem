@@ -99,9 +99,20 @@ export default function TenderDetail() {
   const allCompiled = areAllDocumentsCompiled(tender.tender_requirements);
   const requirements = tender.tender_requirements;
 
-  const handleStatusChange = async (status: TenderStatus) => {
+  const handleStatusChange = async (status: string) => {
     try {
-      await updateStatus.mutateAsync({ id: tender.id, status });
+      if (status === 'won' || status === 'lost') {
+        await updateTender.mutateAsync({
+          id: tender.id,
+          updates: { status: 'submitted', submitted: true, successful: status === 'won' },
+        });
+        toast({
+          title: 'Status updated',
+          description: `Tender marked as ${status === 'won' ? 'Won' : 'Lost'}.`,
+        });
+        return;
+      }
+      await updateStatus.mutateAsync({ id: tender.id, status: status as TenderStatus });
       toast({
         title: 'Status updated',
         description: `Tender status changed to ${status}`,
@@ -180,7 +191,13 @@ export default function TenderDetail() {
     submitted: 'bg-muted text-muted-foreground',
     cancelled: 'bg-destructive/10 text-destructive border-destructive/20',
     rejected: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
+    won: 'bg-success/10 text-success border-success/20',
+    lost: 'bg-destructive/10 text-destructive border-destructive/20',
   };
+
+  const effectiveStatus = tender.status === 'submitted' && tender.successful !== null
+    ? (tender.successful ? 'won' : 'lost')
+    : tender.status;
 
   const outcomeStatusLabels = {
     completed: 'Completed',
@@ -249,7 +266,7 @@ export default function TenderDetail() {
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4">
-            <Select value={tender.status} onValueChange={handleStatusChange} disabled={!canEdit}>
+            <Select value={effectiveStatus} onValueChange={handleStatusChange} disabled={!canEdit}>
               <SelectTrigger className="w-48">
                 <SelectValue />
               </SelectTrigger>
@@ -259,12 +276,14 @@ export default function TenderDetail() {
                 <SelectItem value="in_progress">In-Progress</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
                 <SelectItem value="submitted">Submitted</SelectItem>
+                <SelectItem value="won">Won</SelectItem>
+                <SelectItem value="lost">Lost</SelectItem>
                 <SelectItem value="cancelled">Cancelled</SelectItem>
                 <SelectItem value="rejected">Rejected</SelectItem>
               </SelectContent>
             </Select>
-            <Badge className={cn(statusColors[tender.status] || '', 'text-sm')} variant="outline">
-              {tenderStatusLabels[tender.status] || tender.status}
+            <Badge className={cn(statusColors[effectiveStatus] || '', 'text-sm')} variant="outline">
+              {effectiveStatus === 'won' ? 'Won' : effectiveStatus === 'lost' ? 'Lost' : (tenderStatusLabels[tender.status] || tender.status)}
             </Badge>
           </div>
         </CardContent>
