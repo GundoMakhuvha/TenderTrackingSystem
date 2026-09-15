@@ -80,6 +80,7 @@ function TenderRow({ tender }: { tender: TenderWithRequirements }) {
     submitted: 'bg-muted text-muted-foreground',
     cancelled: 'bg-destructive/10 text-destructive border-destructive/20',
     rejected: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
+    demo: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
   };
 
   return (
@@ -159,6 +160,7 @@ export default function Dashboard() {
     submitted: submittedTenders,
     cancelled: allTenders.filter(t => t.status === 'cancelled'),
     rejected: allTenders.filter(t => t.status === 'rejected'),
+    demo: allTenders.filter(t => t.status === 'demo'),
   };
 
   // Group by assigned lead
@@ -358,6 +360,7 @@ export default function Dashboard() {
                       status === 'submitted' && 'bg-muted-foreground',
                       status === 'cancelled' && 'bg-destructive',
                       status === 'rejected' && 'bg-orange-500',
+                      status === 'demo' && 'bg-purple-500',
                     )} />
                     <span className="font-medium">{tenderStatusLabels[status as keyof typeof tenderStatusLabels] || status}</span>
                   </div>
@@ -373,6 +376,7 @@ export default function Dashboard() {
                           status === 'submitted' && 'bg-muted-foreground',
                           status === 'cancelled' && 'bg-destructive',
                           status === 'rejected' && 'bg-orange-500',
+                          status === 'demo' && 'bg-purple-500',
                         )}
                         style={{ 
                           width: `${allTenders.length ? (items.length / allTenders.length) * 100 : 0}%` 
