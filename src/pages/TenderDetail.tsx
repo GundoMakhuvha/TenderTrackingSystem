@@ -191,6 +191,7 @@ export default function TenderDetail() {
     submitted: 'bg-muted text-muted-foreground',
     cancelled: 'bg-destructive/10 text-destructive border-destructive/20',
     rejected: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
+    demo: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
     won: 'bg-success/10 text-success border-success/20',
     lost: 'bg-destructive/10 text-destructive border-destructive/20',
   };
@@ -280,6 +281,7 @@ export default function TenderDetail() {
                 <SelectItem value="lost">Lost</SelectItem>
                 <SelectItem value="cancelled">Cancelled</SelectItem>
                 <SelectItem value="rejected">Rejected</SelectItem>
+                <SelectItem value="demo">Demo</SelectItem>
               </SelectContent>
             </Select>
             <Badge className={cn(statusColors[effectiveStatus] || '', 'text-sm')} variant="outline">
