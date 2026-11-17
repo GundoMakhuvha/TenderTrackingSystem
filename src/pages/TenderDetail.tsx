@@ -33,6 +33,9 @@ import { useAttachments, useViewAttachment, useDownloadAttachment } from '@/hook
 import { ReassignLeadDialog } from '@/components/tender/ReassignLeadDialog';
 import { TeamMembersSection } from '@/components/tender/TeamMembersSection';
 import { TenderPdfReport } from '@/components/tender/TenderPdfReport';
+import { AddToCalendarMenu } from '@/components/calendar/AddToCalendarMenu';
+import { TenderKeyDates } from '@/components/calendar/TenderKeyDates';
+import { useBreadcrumbLabel } from '@/components/layout/AppBreadcrumbs';
 import { 
   ArrowLeft, 
   Calendar, 
@@ -63,6 +66,7 @@ export default function TenderDetail() {
   const { canManageTenders, isAdmin, profile } = useAuth();
   
   const { data: tender, isLoading } = useTender(id);
+  useBreadcrumbLabel(id ? `/tenders/${id}` : undefined, tender?.tender_reference);
   const isAssignedLead = !!profile?.email && !!tender?.assigned_lead_email
     && profile.email.toLowerCase() === tender.assigned_lead_email.toLowerCase();
   const canEdit = isAdmin || isAssignedLead;
@@ -99,9 +103,20 @@ export default function TenderDetail() {
   const allCompiled = areAllDocumentsCompiled(tender.tender_requirements);
   const requirements = tender.tender_requirements;
 
-  const handleStatusChange = async (status: TenderStatus) => {
+  const handleStatusChange = async (status: string) => {
     try {
-      await updateStatus.mutateAsync({ id: tender.id, status });
+      if (status === 'won' || status === 'lost') {
+        await updateTender.mutateAsync({
+          id: tender.id,
+          updates: { status: 'submitted', submitted: true, successful: status === 'won' },
+        });
+        toast({
+          title: 'Status updated',
+          description: `Tender marked as ${status === 'won' ? 'Won' : 'Lost'}.`,
+        });
+        return;
+      }
+      await updateStatus.mutateAsync({ id: tender.id, status: status as TenderStatus });
       toast({
         title: 'Status updated',
         description: `Tender status changed to ${status}`,
@@ -180,7 +195,14 @@ export default function TenderDetail() {
     submitted: 'bg-muted text-muted-foreground',
     cancelled: 'bg-destructive/10 text-destructive border-destructive/20',
     rejected: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
+    demo: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
+    won: 'bg-success/10 text-success border-success/20',
+    lost: 'bg-destructive/10 text-destructive border-destructive/20',
   };
+
+  const effectiveStatus = tender.status === 'submitted' && tender.successful !== null
+    ? (tender.successful ? 'won' : 'lost')
+    : tender.status;
 
   const outcomeStatusLabels = {
     completed: 'Completed',
@@ -213,7 +235,8 @@ export default function TenderDetail() {
             <p className="text-muted-foreground mt-1">{tender.tender_reference}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <AddToCalendarMenu tender={tender} />
           <TenderPdfReport tender={tender} />
           {isAdmin && (
             <AlertDialog>
@@ -249,7 +272,7 @@ export default function TenderDetail() {
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4">
-            <Select value={tender.status} onValueChange={handleStatusChange} disabled={!canEdit}>
+            <Select value={effectiveStatus} onValueChange={handleStatusChange} disabled={!canEdit}>
               <SelectTrigger className="w-48">
                 <SelectValue />
               </SelectTrigger>
@@ -259,16 +282,22 @@ export default function TenderDetail() {
                 <SelectItem value="in_progress">In-Progress</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
                 <SelectItem value="submitted">Submitted</SelectItem>
+                <SelectItem value="won">Won</SelectItem>
+                <SelectItem value="lost">Lost</SelectItem>
                 <SelectItem value="cancelled">Cancelled</SelectItem>
                 <SelectItem value="rejected">Rejected</SelectItem>
+                <SelectItem value="demo">Demo</SelectItem>
               </SelectContent>
             </Select>
-            <Badge className={cn(statusColors[tender.status] || '', 'text-sm')} variant="outline">
-              {tenderStatusLabels[tender.status] || tender.status}
+            <Badge className={cn(statusColors[effectiveStatus] || '', 'text-sm')} variant="outline">
+              {effectiveStatus === 'won' ? 'Won' : effectiveStatus === 'lost' ? 'Lost' : (tenderStatusLabels[tender.status] || tender.status)}
             </Badge>
           </div>
         </CardContent>
       </Card>
+
+      {/* Key Dates + Outlook */}
+      <TenderKeyDates tender={tender} />
 
       {/* Editable Core Fields */}
       <Card>
@@ -503,10 +532,15 @@ export default function TenderDetail() {
       {/* Briefing Information */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CalendarDays className="h-5 w-5" />
-            Briefing Information
-          </CardTitle>
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <CardTitle className="flex items-center gap-2">
+              <CalendarDays className="h-5 w-5" />
+              Briefing Information
+            </CardTitle>
+            {tender.briefing_date && (
+              <AddToCalendarMenu tender={tender} kinds={['briefing']} label="Add briefing to Outlook" />
+            )}
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <fieldset disabled={!canEdit} className="space-y-4 disabled:opacity-90">

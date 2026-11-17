@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useSessionState } from '@/hooks/useSessionState';
+import { collectEvents, downloadIcs } from '@/lib/calendar';
+import { startOfDay } from 'date-fns';
 import { useTenders, useUpdateTenderStatus } from '@/hooks/useTenders';
 import { TenderWithRequirements, TenderStatus, isTenderOverdue, areAllDocumentsCompiled, tenderStatusLabels } from '@/types/tender';
 import { Link, useSearchParams } from 'react-router-dom';
@@ -27,7 +29,9 @@ import {
   FileText, 
   AlertTriangle,
   Upload,
-  CheckCircle2
+  CheckCircle2,
+  CalendarPlus,
+  FilterX
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -42,13 +46,13 @@ export default function TenderList() {
   const updateStatus = useUpdateTenderStatus();
   const { toast } = useToast();
   
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>(searchParams.get('filter') || 'all');
-  const [leadFilter, setLeadFilter] = useState<string>('all');
-  const [departmentFilter, setDepartmentFilter] = useState<string>('all');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
-  const [activeTab, setActiveTab] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useSessionState('tenders.search', '');
+  const [statusFilter, setStatusFilter] = useSessionState<string>('tenders.status', 'all', searchParams.get('filter'));
+  const [leadFilter, setLeadFilter] = useSessionState<string>('tenders.lead', 'all');
+  const [departmentFilter, setDepartmentFilter] = useSessionState<string>('tenders.department', 'all');
+  const [dateFrom, setDateFrom] = useSessionState('tenders.from', '');
+  const [dateTo, setDateTo] = useSessionState('tenders.to', '');
+  const [activeTab, setActiveTab] = useSessionState<string>('tenders.tab', 'all');
 
   if (isLoading) {
     return (
@@ -88,6 +92,10 @@ export default function TenderList() {
       filteredTenders = filteredTenders.filter(t => 
         t.status !== 'submitted' && !areAllDocumentsCompiled(t.tender_requirements)
       );
+    } else if (statusFilter === 'won') {
+      filteredTenders = filteredTenders.filter(t => t.submitted && t.successful === true);
+    } else if (statusFilter === 'lost') {
+      filteredTenders = filteredTenders.filter(t => t.submitted && t.successful === false);
     } else {
       filteredTenders = filteredTenders.filter(t => t.status === statusFilter);
     }
@@ -119,6 +127,9 @@ export default function TenderList() {
     submitted: 'bg-muted text-muted-foreground',
     cancelled: 'bg-destructive/10 text-destructive border-destructive/20',
     rejected: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
+    demo: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
+    won: 'bg-success/10 text-success border-success/20',
+    lost: 'bg-destructive/10 text-destructive border-destructive/20',
   };
 
   const handleApprove = async (tenderId: string) => {
@@ -163,8 +174,28 @@ export default function TenderList() {
             {filteredTenders.length} tender{filteredTenders.length !== 1 ? 's' : ''} found
           </p>
         </div>
+        <div className="flex gap-2 flex-wrap">
+          <Button
+            variant="outline"
+            onClick={() => {
+              const events = collectEvents(filteredTenders, { from: startOfDay(new Date()) });
+              if (events.length === 0) {
+                toast({ title: 'Nothing to export', description: 'The tenders shown have no upcoming dates.' });
+                return;
+              }
+              downloadIcs(events, 'tender-dates', 'Tender Tracker – Key Dates');
+              toast({
+                title: `${events.length} date${events.length === 1 ? '' : 's'} exported`,
+                description: 'Upcoming briefings, internal dates and deadlines for the tenders shown. Open the .ics in Outlook.',
+              });
+            }}
+            title="Export upcoming dates for the tenders currently shown"
+          >
+            <CalendarPlus className="mr-2 h-4 w-4" />
+            Export dates to Outlook
+          </Button>
         {canManageTenders && (
-          <div className="flex gap-2">
+          <>
             <Button variant="outline" asChild>
               <Link to="/tenders/upload">
                 <Upload className="mr-2 h-4 w-4" />
@@ -177,8 +208,9 @@ export default function TenderList() {
                 New Tender
               </Link>
             </Button>
-          </div>
+          </>
         )}
+        </div>
       </div>
 
       {/* Tabs */}
@@ -222,8 +254,11 @@ export default function TenderList() {
                 <SelectItem value="submitted">Submitted</SelectItem>
                 <SelectItem value="cancelled">Cancelled</SelectItem>
                 <SelectItem value="rejected">Rejected</SelectItem>
+                <SelectItem value="demo">Demo</SelectItem>
                 <SelectItem value="overdue">Overdue</SelectItem>
                 <SelectItem value="missing_docs">Missing Documents</SelectItem>
+                <SelectItem value="won">Won</SelectItem>
+                <SelectItem value="lost">Lost</SelectItem>
               </SelectContent>
             </Select>
           )}
@@ -272,6 +307,24 @@ export default function TenderList() {
           {(dateFrom || dateTo) && (
             <Button variant="ghost" size="sm" onClick={() => { setDateFrom(''); setDateTo(''); }}>
               Clear dates
+            </Button>
+          )}
+          {(searchQuery || statusFilter !== 'all' || leadFilter !== 'all' || departmentFilter !== 'all' || dateFrom || dateTo) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="sm:ml-auto"
+              onClick={() => {
+                setSearchQuery('');
+                setStatusFilter('all');
+                setLeadFilter('all');
+                setDepartmentFilter('all');
+                setDateFrom('');
+                setDateTo('');
+              }}
+            >
+              <FilterX className="mr-2 h-4 w-4" />
+              Reset all filters
             </Button>
           )}
         </div>
@@ -339,9 +392,16 @@ export default function TenderList() {
                       {tender.assigned_lead_name}
                     </TableCell>
                     <TableCell>
-                      <Badge className={statusColors[tender.status] || ''} variant="outline">
-                        {tenderStatusLabels[tender.status] || tender.status}
-                      </Badge>
+                      {(() => {
+                        const eff = tender.status === 'submitted' && tender.successful !== null
+                          ? (tender.successful ? 'won' : 'lost')
+                          : tender.status;
+                        return (
+                          <Badge className={statusColors[eff] || ''} variant="outline">
+                            {eff === 'won' ? 'Won' : eff === 'lost' ? 'Lost' : (tenderStatusLabels[tender.status] || tender.status)}
+                          </Badge>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
                       {tender.department || '—'}

@@ -85,9 +85,9 @@ export default function TenderForm() {
       
       toast({
         title: 'Tender created',
-        description: 'The tender has been created successfully.',
+        description: 'You can now add its briefing and deadline to Outlook from this page.',
       });
-      navigate('/tenders');
+      navigate(`/tenders/${tender.id}`);
     } catch (error: any) {
       toast({
         variant: 'destructive',

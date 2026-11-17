@@ -1,4 +1,4 @@
-export type TenderStatus = 'new' | 'go_ahead' | 'in_progress' | 'completed' | 'submitted' | 'cancelled' | 'rejected';
+export type TenderStatus = 'new' | 'go_ahead' | 'in_progress' | 'completed' | 'submitted' | 'cancelled' | 'rejected' | 'demo';
 export type OutcomeStatus = 'completed' | 'in_progress' | 'not_started';
 
 export type QuoteStatus = 'not_required' | 'requested' | 'finalised';
@@ -136,4 +136,5 @@ export const tenderStatusLabels: Record<TenderStatus, string> = {
   submitted: 'Submitted',
   cancelled: 'Cancelled',
   rejected: 'Rejected',
+  demo: 'Demo',
 };

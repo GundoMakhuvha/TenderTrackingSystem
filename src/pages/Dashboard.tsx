@@ -13,11 +13,14 @@ import {
   AlertCircle,
   ArrowRight,
   TrendingUp,
-  Calendar
+  Calendar,
+  Presentation
 } from 'lucide-react';
 import { format, differenceInDays, addDays, startOfDay, endOfDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
+import { AddToCalendarMenu } from '@/components/calendar/AddToCalendarMenu';
+import { parseBusinessDateTime } from '@/lib/calendar';
 import { StatusPieChart, DepartmentBarChart, WinLossChart, MonthlyTrendChart } from '@/components/dashboard/AnalyticsCharts';
 
 function StatCard({ 
@@ -80,6 +83,7 @@ function TenderRow({ tender }: { tender: TenderWithRequirements }) {
     submitted: 'bg-muted text-muted-foreground',
     cancelled: 'bg-destructive/10 text-destructive border-destructive/20',
     rejected: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
+    demo: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
   };
 
   return (
@@ -159,6 +163,7 @@ export default function Dashboard() {
     submitted: submittedTenders,
     cancelled: allTenders.filter(t => t.status === 'cancelled'),
     rejected: allTenders.filter(t => t.status === 'rejected'),
+    demo: allTenders.filter(t => t.status === 'demo'),
   };
 
   // Group by assigned lead
@@ -186,6 +191,16 @@ export default function Dashboard() {
     const completionDate = startOfDay(new Date(t.internal_completion_date));
     return completionDate.getTime() === tomorrow.getTime();
   });
+
+  // Briefings in the next 14 days that haven't been attended yet
+  const upcomingBriefings = activeTenders
+    .filter((t) => t.briefing_date && !t.briefing_attended)
+    .map((t) => ({ tender: t, when: parseBusinessDateTime(t.briefing_date!, t.briefing_time) }))
+    .filter(({ when }) => {
+      const days = differenceInDays(startOfDay(when), startOfDay(new Date()));
+      return days >= 0 && days <= 14;
+    })
+    .sort((a, b) => a.when.getTime() - b.when.getTime());
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -304,6 +319,45 @@ export default function Dashboard() {
         </Card>
       </div>
 
+      <div className="grid gap-6 lg:grid-cols-2">
+      {/* Upcoming Briefings */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+          <CardTitle className="flex items-center gap-2">
+            <Presentation className="h-5 w-5 text-primary" />
+            Upcoming Briefings
+          </CardTitle>
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/calendar">Key Dates</Link>
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {upcomingBriefings.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Calendar className="h-10 w-10 mx-auto mb-3 opacity-50" />
+              <p className="text-sm">No briefings in the next 14 days</p>
+            </div>
+          ) : (
+            upcomingBriefings.map(({ tender, when }) => (
+              <div key={tender.id} className="flex items-center justify-between gap-3 p-3 rounded-lg border">
+                <Link to={`/tenders/${tender.id}`} className="min-w-0 flex-1 hover:underline">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium truncate">{tender.tender_reference}</span>
+                    {tender.briefing_compulsory && (
+                      <Badge variant="destructive" className="text-xs">Compulsory</Badge>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {format(when, 'EEE dd MMM, HH:mm')} · {tender.client_name}
+                  </p>
+                </Link>
+                <AddToCalendarMenu tender={tender} kinds={['briefing']} label="Outlook" variant="ghost" />
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
+
       {/* Due for Completion Tomorrow */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
@@ -325,6 +379,7 @@ export default function Dashboard() {
           )}
         </CardContent>
       </Card>
+      </div>
 
       {/* Analytics Charts */}
       <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-4">
@@ -358,6 +413,7 @@ export default function Dashboard() {
                       status === 'submitted' && 'bg-muted-foreground',
                       status === 'cancelled' && 'bg-destructive',
                       status === 'rejected' && 'bg-orange-500',
+                      status === 'demo' && 'bg-purple-500',
                     )} />
                     <span className="font-medium">{tenderStatusLabels[status as keyof typeof tenderStatusLabels] || status}</span>
                   </div>
@@ -373,6 +429,7 @@ export default function Dashboard() {
                           status === 'submitted' && 'bg-muted-foreground',
                           status === 'cancelled' && 'bg-destructive',
                           status === 'rejected' && 'bg-orange-500',
+                          status === 'demo' && 'bg-purple-500',
                         )}
                         style={{ 
                           width: `${allTenders.length ? (items.length / allTenders.length) * 100 : 0}%` 

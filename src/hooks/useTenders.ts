@@ -91,6 +91,7 @@ export function useCreateTender() {
           briefing_date: formData.briefing_date,
           briefing_time: formData.briefing_time,
           briefing_attended: formData.briefing_attended,
+          briefing_compulsory: formData.briefing_compulsory,
           duration_months: formData.duration_months,
           budget: formData.budget,
           rating: formData.rating,
