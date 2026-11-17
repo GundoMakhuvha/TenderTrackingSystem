@@ -33,6 +33,9 @@ import { useAttachments, useViewAttachment, useDownloadAttachment } from '@/hook
 import { ReassignLeadDialog } from '@/components/tender/ReassignLeadDialog';
 import { TeamMembersSection } from '@/components/tender/TeamMembersSection';
 import { TenderPdfReport } from '@/components/tender/TenderPdfReport';
+import { AddToCalendarMenu } from '@/components/calendar/AddToCalendarMenu';
+import { TenderKeyDates } from '@/components/calendar/TenderKeyDates';
+import { useBreadcrumbLabel } from '@/components/layout/AppBreadcrumbs';
 import { 
   ArrowLeft, 
   Calendar, 
@@ -63,6 +66,7 @@ export default function TenderDetail() {
   const { canManageTenders, isAdmin, profile } = useAuth();
   
   const { data: tender, isLoading } = useTender(id);
+  useBreadcrumbLabel(id ? `/tenders/${id}` : undefined, tender?.tender_reference);
   const isAssignedLead = !!profile?.email && !!tender?.assigned_lead_email
     && profile.email.toLowerCase() === tender.assigned_lead_email.toLowerCase();
   const canEdit = isAdmin || isAssignedLead;
@@ -231,7 +235,8 @@ export default function TenderDetail() {
             <p className="text-muted-foreground mt-1">{tender.tender_reference}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <AddToCalendarMenu tender={tender} />
           <TenderPdfReport tender={tender} />
           {isAdmin && (
             <AlertDialog>
@@ -290,6 +295,9 @@ export default function TenderDetail() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Key Dates + Outlook */}
+      <TenderKeyDates tender={tender} />
 
       {/* Editable Core Fields */}
       <Card>
@@ -524,10 +532,15 @@ export default function TenderDetail() {
       {/* Briefing Information */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CalendarDays className="h-5 w-5" />
-            Briefing Information
-          </CardTitle>
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <CardTitle className="flex items-center gap-2">
+              <CalendarDays className="h-5 w-5" />
+              Briefing Information
+            </CardTitle>
+            {tender.briefing_date && (
+              <AddToCalendarMenu tender={tender} kinds={['briefing']} label="Add briefing to Outlook" />
+            )}
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <fieldset disabled={!canEdit} className="space-y-4 disabled:opacity-90">

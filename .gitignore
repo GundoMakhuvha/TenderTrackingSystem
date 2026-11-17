@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment (the committed .env only holds the public anon/publishable key)
+.env.local
+.env.*.local

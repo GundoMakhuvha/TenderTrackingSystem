@@ -19,6 +19,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
   isAdmin: boolean;
   isBidsTeam: boolean;
   canManageTenders: boolean;
@@ -126,6 +127,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRoles([]);
   };
 
+  const refreshProfile = async () => {
+    if (user) await fetchUserData(user.id);
+  };
+
   const isAdmin = roles.includes('admin');
   const isBidsTeam = roles.includes('bids_team');
   const canManageTenders = isAdmin || isBidsTeam;
@@ -141,6 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signUp,
         signIn,
         signOut,
+        refreshProfile,
         isAdmin,
         isBidsTeam,
         canManageTenders,

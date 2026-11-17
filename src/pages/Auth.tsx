@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,9 @@ import tippFocusLogo from '@/assets/tipp-focus-logo.png';
 
 export default function Auth() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = (location.state as { from?: string } | null)?.from;
+  const redirectTo = from && from !== '/auth' ? from : '/';
   const { signIn, signUp } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -40,7 +43,7 @@ export default function Auth() {
         title: 'Welcome back!',
         description: 'You have successfully logged in.',
       });
-      navigate('/');
+      navigate(redirectTo, { replace: true });
     }
     setLoading(false);
   };
@@ -62,7 +65,7 @@ export default function Auth() {
         title: 'Account created!',
         description: 'You can now log in with your credentials.',
       });
-      navigate('/');
+      navigate(redirectTo, { replace: true });
     }
     setLoading(false);
   };

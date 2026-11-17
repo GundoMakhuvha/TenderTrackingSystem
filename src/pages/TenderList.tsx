@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useSessionState } from '@/hooks/useSessionState';
+import { collectEvents, downloadIcs } from '@/lib/calendar';
+import { startOfDay } from 'date-fns';
 import { useTenders, useUpdateTenderStatus } from '@/hooks/useTenders';
 import { TenderWithRequirements, TenderStatus, isTenderOverdue, areAllDocumentsCompiled, tenderStatusLabels } from '@/types/tender';
 import { Link, useSearchParams } from 'react-router-dom';
@@ -27,7 +29,9 @@ import {
   FileText, 
   AlertTriangle,
   Upload,
-  CheckCircle2
+  CheckCircle2,
+  CalendarPlus,
+  FilterX
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -42,13 +46,13 @@ export default function TenderList() {
   const updateStatus = useUpdateTenderStatus();
   const { toast } = useToast();
   
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>(searchParams.get('filter') || 'all');
-  const [leadFilter, setLeadFilter] = useState<string>('all');
-  const [departmentFilter, setDepartmentFilter] = useState<string>('all');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
-  const [activeTab, setActiveTab] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useSessionState('tenders.search', '');
+  const [statusFilter, setStatusFilter] = useSessionState<string>('tenders.status', 'all', searchParams.get('filter'));
+  const [leadFilter, setLeadFilter] = useSessionState<string>('tenders.lead', 'all');
+  const [departmentFilter, setDepartmentFilter] = useSessionState<string>('tenders.department', 'all');
+  const [dateFrom, setDateFrom] = useSessionState('tenders.from', '');
+  const [dateTo, setDateTo] = useSessionState('tenders.to', '');
+  const [activeTab, setActiveTab] = useSessionState<string>('tenders.tab', 'all');
 
   if (isLoading) {
     return (
@@ -170,8 +174,28 @@ export default function TenderList() {
             {filteredTenders.length} tender{filteredTenders.length !== 1 ? 's' : ''} found
           </p>
         </div>
+        <div className="flex gap-2 flex-wrap">
+          <Button
+            variant="outline"
+            onClick={() => {
+              const events = collectEvents(filteredTenders, { from: startOfDay(new Date()) });
+              if (events.length === 0) {
+                toast({ title: 'Nothing to export', description: 'The tenders shown have no upcoming dates.' });
+                return;
+              }
+              downloadIcs(events, 'tender-dates', 'Tender Tracker – Key Dates');
+              toast({
+                title: `${events.length} date${events.length === 1 ? '' : 's'} exported`,
+                description: 'Upcoming briefings, internal dates and deadlines for the tenders shown. Open the .ics in Outlook.',
+              });
+            }}
+            title="Export upcoming dates for the tenders currently shown"
+          >
+            <CalendarPlus className="mr-2 h-4 w-4" />
+            Export dates to Outlook
+          </Button>
         {canManageTenders && (
-          <div className="flex gap-2">
+          <>
             <Button variant="outline" asChild>
               <Link to="/tenders/upload">
                 <Upload className="mr-2 h-4 w-4" />
@@ -184,8 +208,9 @@ export default function TenderList() {
                 New Tender
               </Link>
             </Button>
-          </div>
+          </>
         )}
+        </div>
       </div>
 
       {/* Tabs */}
@@ -282,6 +307,24 @@ export default function TenderList() {
           {(dateFrom || dateTo) && (
             <Button variant="ghost" size="sm" onClick={() => { setDateFrom(''); setDateTo(''); }}>
               Clear dates
+            </Button>
+          )}
+          {(searchQuery || statusFilter !== 'all' || leadFilter !== 'all' || departmentFilter !== 'all' || dateFrom || dateTo) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="sm:ml-auto"
+              onClick={() => {
+                setSearchQuery('');
+                setStatusFilter('all');
+                setLeadFilter('all');
+                setDepartmentFilter('all');
+                setDateFrom('');
+                setDateTo('');
+              }}
+            >
+              <FilterX className="mr-2 h-4 w-4" />
+              Reset all filters
             </Button>
           )}
         </div>

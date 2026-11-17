@@ -3,20 +3,26 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- TODO: Set the document title to the name of your application -->
-    <title>Tender Tracking System</title>
-    <meta name="description" content="Developed By: Gundo Makhuvha" />
-    <meta name="author" content="Tender Tracking System" />
-
-    <!-- TODO: Update og:title to match your application name -->
-    <meta property="og:title" content="Tender Tracking System" />
-    <meta property="og:description" content="Developed By: Gundo Makhuvha" />
+    <title>Tender Tracker | TIPP Focus</title>
+    <meta name="description" content="TIPP Focus Tender Tracking System — developed by Gundo Makhuvha" />
+    <meta name="author" content="Gundo Makhuvha" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#1e3a8a" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <meta property="og:title" content="Tender Tracker | TIPP Focus" />
+    <meta property="og:description" content="TIPP Focus Tender Tracking System" />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://i.postimg.cc/TP3NY1Y4/New-Tipp-Logo.png" />
-
-    
+    <script>
+      // Apply the saved theme before first paint to avoid a flash.
+      try {
+        var t = localStorage.getItem('ttm-theme');
+        if (t === 'dark' || ((!t || t === 'system') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        }
+      } catch (e) {}
+    </script>
   </head>
-
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
