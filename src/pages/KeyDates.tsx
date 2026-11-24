@@ -56,9 +56,9 @@ import {
   CalendarEvent,
   CalendarEventKind,
   collectEvents,
-  downloadIcs,
   eventKindLabels,
 } from '@/lib/calendar';
+import { downloadIcs } from '@/lib/calendar-browser';
 import type { TenderWithRequirements } from '@/types/tender';
 import { cn } from '@/lib/utils';
 

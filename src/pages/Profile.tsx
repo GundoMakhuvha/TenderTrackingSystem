@@ -14,7 +14,10 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { collectEvents, downloadIcs } from '@/lib/calendar';
+import {
+  collectEvents,
+} from '@/lib/calendar';
+import { downloadIcs } from '@/lib/calendar-browser';
 
 const ROLE_LABELS: Record<string, string> = {
   admin: 'Admin',

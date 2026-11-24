@@ -4,6 +4,7 @@ import { useCreateTender } from '@/hooks/useTenders';
 import { useUploadAttachment } from '@/hooks/useAttachments';
 import { TenderFormData } from '@/types/tender';
 import { useProfiles } from '@/hooks/useProfiles';
+import { addTeamMembers } from '@/hooks/useTeamMembers';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,7 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Mail, Save, User, UserPlus, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function TenderForm() {
@@ -27,6 +28,12 @@ export default function TenderForm() {
   const { data: profiles } = useProfiles();
   const uploadAttachment = useUploadAttachment();
   const [tenderDocFile, setTenderDocFile] = useState<File | null>(null);
+  const [leadId, setLeadId] = useState<string>('');
+  const [teamIds, setTeamIds] = useState<string[]>([]);
+  const [pendingMember, setPendingMember] = useState<string>('');
+  const MAX_TEAM_MEMBERS = 5;
+  const people = (profiles ?? []).filter((p) => p.id && p.email);
+  const nameOf = (p: { full_name: string | null; email: string }) => p.full_name || p.email;
 
   const [formData, setFormData] = useState<TenderFormData>({
     tender_reference: '',
@@ -64,6 +71,20 @@ export default function TenderForm() {
 
     try {
       const tender = await createTender.mutateAsync(formData);
+
+      // Save the team straight away: everyone gets the new tender email,
+      // and the lead's email lists the whole team.
+      if (teamIds.length > 0) {
+        try {
+          await addTeamMembers(tender.id, teamIds);
+        } catch {
+          toast({
+            variant: 'destructive',
+            title: 'Team not saved',
+            description: 'The tender was created but the team members could not be added. Add them from the tender page.',
+          });
+        }
+      }
       
       // Upload tender document if selected
       if (tenderDocFile) {
@@ -85,7 +106,10 @@ export default function TenderForm() {
       
       toast({
         title: 'Tender created',
-        description: 'You can now add its briefing and deadline to Outlook from this page.',
+        description:
+          leadId || teamIds.length
+            ? 'The lead and team will get an email with the tender details and dates.'
+            : 'You can now add its briefing and deadline to Outlook from this page.',
       });
       navigate(`/tenders/${tender.id}`);
     } catch (error: any) {
@@ -313,6 +337,114 @@ export default function TenderForm() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Tender Team */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Tender Team</CardTitle>
+            <CardDescription>
+              The lead and each team member get an email with the tender details and an Outlook calendar file with its dates.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="tender_lead">Tender lead</Label>
+              <Select
+                value={leadId}
+                onValueChange={(id) => {
+                  const p = people.find((x) => x.id === id);
+                  setLeadId(id);
+                  setTeamIds((prev) => prev.filter((t) => t !== id));
+                  setFormData((prev) => ({
+                    ...prev,
+                    assigned_lead_name: p ? nameOf(p) : '',
+                    assigned_lead_email: p?.email ?? '',
+                  }));
+                }}
+              >
+                <SelectTrigger id="tender_lead">
+                  <SelectValue placeholder="Select the tender lead" />
+                </SelectTrigger>
+                <SelectContent>
+                  {people.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {nameOf(p)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>
+                Team members <span className="text-muted-foreground font-normal">({teamIds.length}/{MAX_TEAM_MEMBERS})</span>
+              </Label>
+              {teamIds.map((id) => {
+                const p = people.find((x) => x.id === id);
+                if (!p) return null;
+                return (
+                  <div key={id} className="flex items-center justify-between gap-2 rounded-md border px-3 py-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="h-8 w-8 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
+                        <User className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">{nameOf(p)}</p>
+                        <p className="flex items-center gap-1 text-xs text-muted-foreground truncate">
+                          <Mail className="h-3 w-3" />
+                          {p.email}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      aria-label={`Remove ${nameOf(p)}`}
+                      onClick={() => setTeamIds((prev) => prev.filter((t) => t !== id))}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                );
+              })}
+              {teamIds.length < MAX_TEAM_MEMBERS && (
+                <div className="flex items-center gap-2">
+                  <Select value={pendingMember} onValueChange={setPendingMember}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Add a team member" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {people
+                        .filter((p) => p.id !== leadId && !teamIds.includes(p.id))
+                        .map((p) => (
+                          <SelectItem key={p.id} value={p.id}>
+                            {nameOf(p)}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={!pendingMember}
+                    onClick={() => {
+                      setTeamIds((prev) => [...prev, pendingMember]);
+                      setPendingMember('');
+                    }}
+                  >
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Add
+                  </Button>
+                </div>
+              )}
+              {people.length === 0 && (
+                <p className="text-xs text-muted-foreground">Only people with a Tender Tracker account can be selected.</p>
+              )}
             </div>
           </CardContent>
         </Card>

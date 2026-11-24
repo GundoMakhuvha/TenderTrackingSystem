@@ -81,7 +81,12 @@ export function TenderKeyDates({ tender }: { tender: TenderArg }) {
                     />
                   </>
                 ) : (
-                  <p className="text-sm text-muted-foreground">Not captured yet</p>
+                  <p className="text-sm text-muted-foreground">
+                    Not captured yet
+                    {kind === 'briefing' && (
+                      <span className="block text-xs mt-1">Add a briefing date in Briefing Information below to put it in Outlook.</span>
+                    )}
+                  </p>
                 )}
               </div>
             );

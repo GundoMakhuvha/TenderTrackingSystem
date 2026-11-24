@@ -13,15 +13,15 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   CalendarEvent,
   CalendarEventKind,
-  downloadIcs,
   eventKindLabels,
   getTenderEvents,
-  openInOutlookWeb,
   safeFileName,
 } from '@/lib/calendar';
+import { downloadIcs, openInOutlookWeb } from '@/lib/calendar-browser';
 import type { Tender } from '@/types/tender';
 
 function whenLabel(e: CalendarEvent) {
@@ -66,6 +66,8 @@ interface AddToCalendarMenuProps {
   variant?: ButtonProps['variant'];
   size?: ButtonProps['size'];
   className?: string;
+  /** Tooltip shown when there are no dates to add yet. */
+  emptyHint?: string;
 }
 
 /**
@@ -80,6 +82,7 @@ export function AddToCalendarMenu({
   variant = 'outline',
   size = 'sm',
   className,
+  emptyHint = 'No dates captured yet',
 }: AddToCalendarMenuProps) {
   const { toast } = useToast();
   const events = getTenderEvents(tender).filter((e) => !kinds || kinds.includes(e.kind));
@@ -87,10 +90,18 @@ export function AddToCalendarMenu({
 
   if (events.length === 0) {
     return (
-      <Button variant={variant} size={size} className={className} disabled title="No dates captured yet">
-        <CalendarPlus className="mr-2 h-4 w-4" />
-        {label}
-      </Button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          {/* span wrapper so the tooltip still works on a disabled button */}
+          <span tabIndex={0} className="inline-flex">
+            <Button variant={variant} size={size} className={className} disabled>
+              <CalendarPlus className="mr-2 h-4 w-4" />
+              {label}
+            </Button>
+          </span>
+        </TooltipTrigger>
+        <TooltipContent>{emptyHint}</TooltipContent>
+      </Tooltip>
     );
   }
 

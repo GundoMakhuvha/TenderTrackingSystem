@@ -1,5 +1,23 @@
 # Changelog
 
+## 2.1.0 (24 Nov 2026): tender emails
+
+### New
+- **Tender Team on the New Tender form:** pick the tender lead and up to 5 team members when creating a tender
+- **Tender emails** (same design as the Outlook invites), sent from tenders@tippfocus.co.za with replies going to the tender lead:
+  - New tender: to the lead and every team member
+  - Added to the team later: to the new member
+  - Lead reassigned: to the new lead
+  - Dates updated: a "Notify team" prompt appears on the tender page after dates are edited
+- Every tender email lists the key dates with an "Add to Outlook" link per date and attaches **tender-dates.ics** with all of them; re-opening an updated file replaces the old Outlook entries
+- Status and other notification emails restyled to match
+
+### Changed
+- Calendar logic is shared between the app and the email function (`npm run sync:calendar` keeps the function's copy in step; a test fails if they drift)
+- Dates and times in invites always show South African time, wherever the code runs
+- Very long tender titles are shortened in invite and email headings
+- Email sender, name and app link are settings (NOTIFY_FROM_EMAIL, NOTIFY_FROM_NAME, APP_URL) instead of being hard coded
+
 ## 2.0.0 — 12 Nov 2026
 
 ### New
