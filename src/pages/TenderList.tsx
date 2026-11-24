@@ -1,5 +1,8 @@
 import { useSessionState } from '@/hooks/useSessionState';
-import { collectEvents, downloadIcs } from '@/lib/calendar';
+import {
+  collectEvents,
+} from '@/lib/calendar';
+import { downloadIcs } from '@/lib/calendar-browser';
 import { startOfDay } from 'date-fns';
 import { useTenders, useUpdateTenderStatus } from '@/hooks/useTenders';
 import { TenderWithRequirements, TenderStatus, isTenderOverdue, areAllDocumentsCompiled, tenderStatusLabels } from '@/types/tender';

@@ -1,1 +1,6 @@
 project_id = "zvxzwqibgkulchrzparb"
+
+# Called by the database hook (no user token) and by signed-in users;
+# the function checks both itself.
+[functions.send-notification-email]
+verify_jwt = false

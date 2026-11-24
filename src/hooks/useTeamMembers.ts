@@ -82,3 +82,12 @@ export function useRemoveTeamMember() {
     },
   });
 }
+
+/** Add several team members in one go (used when a tender is created). */
+export async function addTeamMembers(tenderId: string, userIds: string[]) {
+  if (userIds.length === 0) return;
+  const { error } = await supabase
+    .from('tender_team_members')
+    .insert(userIds.map((userId) => ({ tender_id: tenderId, user_id: userId })));
+  if (error) throw error;
+}

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTender, useUpdateTenderStatus, useUpdateTenderRequirements, useDeleteTender, useUpdateTender } from '@/hooks/useTenders';
 import { isTenderOverdue, areAllDocumentsCompiled, TenderStatus, QuoteStatus, DocumentStatus, TechnicalStatus, OutcomeStatus, tenderStatusLabels } from '@/types/tender';
@@ -35,6 +36,7 @@ import { TeamMembersSection } from '@/components/tender/TeamMembersSection';
 import { TenderPdfReport } from '@/components/tender/TenderPdfReport';
 import { AddToCalendarMenu } from '@/components/calendar/AddToCalendarMenu';
 import { TenderKeyDates } from '@/components/calendar/TenderKeyDates';
+import { NotifyDatesChanged } from '@/components/calendar/NotifyDatesChanged';
 import { useBreadcrumbLabel } from '@/components/layout/AppBreadcrumbs';
 import { 
   ArrowLeft, 
@@ -59,6 +61,9 @@ import {
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
+/** Fields that appear in calendar invites; changing them offers a team update. */
+const DATE_FIELDS = ['briefing_date', 'briefing_time', 'briefing_compulsory', 'internal_completion_date', 'submission_deadline'];
+
 export default function TenderDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -70,6 +75,7 @@ export default function TenderDetail() {
   const isAssignedLead = !!profile?.email && !!tender?.assigned_lead_email
     && profile.email.toLowerCase() === tender.assigned_lead_email.toLowerCase();
   const canEdit = isAdmin || isAssignedLead;
+  const [datesChanged, setDatesChanged] = useState(false);
   const updateStatus = useUpdateTenderStatus();
   const updateRequirements = useUpdateTenderRequirements();
   const updateTender = useUpdateTender();
@@ -138,6 +144,7 @@ export default function TenderDetail() {
         tenderId: tender.id,
         updates: { [field]: value },
       });
+      if (DATE_FIELDS.includes(field)) setDatesChanged(true);
       toast({
         title: 'Requirement updated',
         description: 'The checklist has been updated.',
@@ -297,6 +304,9 @@ export default function TenderDetail() {
       </Card>
 
       {/* Key Dates + Outlook */}
+      {datesChanged && (canManageTenders || isAssignedLead) && (
+        <NotifyDatesChanged tenderId={tender.id} onDone={() => setDatesChanged(false)} />
+      )}
       <TenderKeyDates tender={tender} />
 
       {/* Editable Core Fields */}
@@ -537,9 +547,12 @@ export default function TenderDetail() {
               <CalendarDays className="h-5 w-5" />
               Briefing Information
             </CardTitle>
-            {tender.briefing_date && (
-              <AddToCalendarMenu tender={tender} kinds={['briefing']} label="Add briefing to Outlook" />
-            )}
+            <AddToCalendarMenu
+              tender={tender}
+              kinds={['briefing']}
+              label="Add briefing to Outlook"
+              emptyHint="Enter a briefing date below first"
+            />
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
